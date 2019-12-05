@@ -28,24 +28,35 @@ class Neural_network:
             self.b[i] = np.random.randn(layer_nodes[i+1]);  
             
     def classification_rate(self,T,Y): 
-        n_correct = 0;
-        n_total = 0;
+        #n_correct = 0;
+        #n_total = 0;
         ground_true = np.argmax(T,axis = 1);
-        pred = np.argmax(Y,axis = 1);
-        for i in range(len(pred)):
-            n_total += 1;
-            if pred[i] == ground_true[i]:
-                n_correct += 1;            
-        return n_correct / n_total;
+        pred = np.argmax(Y,axis = 1);        
+        #for i in range(len(pred)):
+            #n_total += 1;
+            #if pred[i] == ground_true[i]:
+                #n_correct += 1;            
+        #return n_correct / n_total;
+        # !!! the easier implement
+        return np.mean(ground_true == pred);
+    
+    # these following two functions are non-linearity
+    # ------------------------------------------------------------------------
+    def softmax(self,A):
+        expA = np.exp(A);
+        return expA / expA.sum(axis = 1 , keepdims = True);
+    
+    def tanh(self,A):
+        return 1/(np.exp(-A) + 1);
+    # ------------------------------------------------------------------------
             
     def forward(self):
         for i in range(1,self.L):
-            self.nodes[i] = 1 / (np.exp(-self.nodes[i-1].dot(self.W[i-1]) - self.b[i-1]) + 1);
-            #self.nodes[i] = (np.exp(2*(self.nodes[i-1].dot(self.W[i-1]) + self.b[i-1]))-1) \
-            #/ (np.exp(2*(self.nodes[i-1].dot(self.W[i-1]) + self.b[i-1]))+1);        
-        A = self.nodes[self.L-1].dot(self.W[self.L-1]) + self.b[self.L-1];
-        expA = np.exp(A);                   
-        self.nodes[self.L] = expA / expA.sum(axis = 1 , keepdims = True);
+            A = self.nodes[i-1].dot(self.W[i-1]) + self.b[i-1];
+            self.nodes[i] = self.tanh(A);
+                    
+        A = self.nodes[self.L-1].dot(self.W[self.L-1]) + self.b[self.L-1];        
+        self.nodes[self.L] = self.softmax(A)
         
     def derivative(self):
         # back probagation
@@ -67,9 +78,11 @@ class Neural_network:
         return delta_W, delta_b;
             
             
-    def cost(self):
-        tot = self.Target * np.log(self.nodes[-1]);
-        return tot.sum();
+    def cost(self,T,Y): # cross entropy 
+        tot = T * np.log(Y);
+        return np.mean(tot);
+        #tot = self.Target * np.log(self.nodes[-1]);
+        #return tot.sum();
     
     def optimal(self):
         learning_rate =  5*10e-7;
@@ -78,8 +91,9 @@ class Neural_network:
             self.forward();
             
             if epoch%1000 == 0:
-                c = self.cost();
-                Y = self.nodes[-1];                
+                
+                Y = self.nodes[-1];  
+                c = self.cost(self.Target,Y);
                 r = self.classification_rate(self.Target,Y);
                 print("cost:",c,"classfication rate:",r);
                 costs.append(c);
@@ -122,4 +136,3 @@ def main():
     
 if __name__ == '__main__':
     main();
-        
