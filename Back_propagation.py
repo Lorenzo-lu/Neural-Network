@@ -50,13 +50,18 @@ class Neural_network:
         return 1/(np.exp(-A) + 1);
     # ------------------------------------------------------------------------
             
-    def forward(self):
-        for i in range(1,self.L):
-            A = self.nodes[i-1].dot(self.W[i-1]) + self.b[i-1];
-            self.nodes[i] = self.tanh(A);
-                    
-        A = self.nodes[self.L-1].dot(self.W[self.L-1]) + self.b[self.L-1];        
-        self.nodes[self.L] = self.softmax(A)
+    def forward(self,L,X,W,b): 
+        nodes = [0] * (self.L+1);
+        nodes[0] = X;
+        for i in range(1,L):
+            A = nodes[i-1].dot(W[i-1]) + b[i-1];
+            nodes[i] = self.tanh(A);
+        
+        A = nodes[L-1].dot(W[L-1]) + b[L-1];
+        nodes[L] = self.softmax(A);
+        
+        return nodes;
+       
         
     def derivative(self):
         # back probagation
@@ -88,14 +93,14 @@ class Neural_network:
         learning_rate =  5*10e-7;
         costs = [];
         for epoch in range(100000):            
-            self.forward();
+            self.nodes = self.forward(self.L,self.nodes[0],self.W,self.b);
             
             if epoch%1000 == 0:
                 
                 Y = self.nodes[-1];  
                 c = self.cost(self.Target,Y);
                 r = self.classification_rate(self.Target,Y);
-                print("cost:",c,"classfication rate:",r);
+                print("cost:",c,"classification rate:",r);
                 costs.append(c);
                 
             delta_W,delta_b = self.derivative();    
@@ -136,3 +141,4 @@ def main():
     
 if __name__ == '__main__':
     main();
+        
