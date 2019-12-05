@@ -63,20 +63,19 @@ class Neural_network:
         return nodes;
        
         
-    def derivative(self):
+    def derivative(self,L,Target,nodes,W):
         # back probagation
-        delta_W = [0] * self.L;
-        delta_b = [0] * self.L;
-        j = self.L - 1;
-        
+        delta_W = [0] * L;
+        delta_b = [0] * L;
+        j = L - 1;
         recursive_kernel = 0;
         while j >= 0:
-            if j == self.L - 1:
-                recursive_kernel = self.Target - self.nodes[j+1];            
+            if j == L-1:
+                recursive_kernel = Target - nodes[j+1];
             else:
-                recursive_kernel = (recursive_kernel.dot(self.W[j+1].T)) * self.nodes[j+1] * (1 - self.nodes[j+1]);
+                recursive_kernel = (recursive_kernel.dot(W[j+1].T)) * nodes[j+1] * (1 - nodes[j+1]);
             
-            delta_W[j] = self.nodes[j].T.dot(recursive_kernel);
+            delta_W[j] = nodes[j].T.dot(recursive_kernel);
             delta_b[j] = recursive_kernel.sum(axis = 0);            
             j -= 1;
             
@@ -90,7 +89,7 @@ class Neural_network:
         #return tot.sum();
     
     def optimal(self):
-        learning_rate =  5*10e-7;
+        learning_rate =  10*10e-7;
         costs = [];
         for epoch in range(100000):            
             self.nodes = self.forward(self.L,self.nodes[0],self.W,self.b);
@@ -103,42 +102,11 @@ class Neural_network:
                 print("cost:",c,"classification rate:",r);
                 costs.append(c);
                 
-            delta_W,delta_b = self.derivative();    
+            delta_W,delta_b = self.derivative(self.L,self.Target,self.nodes,self.W);    
             for i in range(self.L):
                 self.W[i] += learning_rate * delta_W[i];
                 self.b[i] += learning_rate * delta_b[i];
             
         plt.plot(costs);
         plt.show();
-        
-        
-import numpy as np
-import matplotlib.pyplot as plt
-
-def main():
-    Nclass = 200;
-    D = 2;
-    M1 = 3;
-    #M2 = 4;
-    K = 3;
-    
-    X1 = np.random.randn(Nclass,2) + np.array([0,-2]);
-    X2 = np.random.randn(Nclass,2) + np.array([2,2]);
-    X3 = np.random.randn(Nclass,2) + np.array([-2,2]);
-    X = np.vstack([X1,X2,X3]);
-    Y = np.array([0] * Nclass + [1] * Nclass + [2] * Nclass);
-    
-    N = len(Y);
-    T = np.zeros((N,K));
-    for i in range(N):
-        T[i,Y[i]] = 1;
-        
-    plt.scatter(X[:,0],X[:,1],c = Y, s = 10, alpha =100);
-    plt.show();
-    
-    NN = Neural_network(X,T,[D,M1,K]);
-    NN.optimal();
-    
-if __name__ == '__main__':
-    main();
         
