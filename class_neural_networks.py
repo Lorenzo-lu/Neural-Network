@@ -9,8 +9,9 @@ Created on Tue Dec 10 00:10:02 2019
 import numpy as np;
 import matplotlib.pyplot as plt;
 
+
 class Neural_network_classification:
-    
+   
     def __init__(self,X,T,layer_nodes,Activation = 'sigmoid'):
         self.Activation = Activation;
         
@@ -32,7 +33,7 @@ class Neural_network_classification:
             self.b[i] = np.random.randn(layer_nodes[i+1]);  
             #self.W[i] = np.zeros((layer_nodes[i],layer_nodes[i+1]));
             #self.b[i] = np.zeros((layer_nodes[i+1]));
-            
+           
     def y2indicator(self,y,K): 
         N = len(y);
         ind = np.zeros((N,K));
@@ -96,7 +97,7 @@ class Neural_network_classification:
         nodes[L] = self.softmax(A);
         
         return nodes;
-        
+       
     def derivative(self,L,Target,nodes,W):
         # back probagation
         delta_W = [0] * L;
@@ -186,12 +187,13 @@ class Neural_network_classification:
             for i in range(self.L):
                 self.W[i] += learning_rate * (delta_W[i] - regularization * np.abs(self.W[i]));
                 self.b[i] += learning_rate * (delta_b[i] - regularization * np.abs(self.b[i]));
-            
+
+        plt.figure();     
         plt.plot(costs);
         plt.title("Optimization");
         plt.xlabel("steps");
         plt.ylabel("cross entropy likelihood");
-        plt.show();
+        #plt.show();
         
     def momentum_optimal(self,learning_rate = 1e-5,converge = 1e-7 ,beta = 0.5,regularization = 0,plot_step = 1000):
         if beta < 0 or beta > 1:
@@ -207,9 +209,11 @@ class Neural_network_classification:
         VdW = [0] * self.L;
         Vdb = [0] * self.L;        
         for i in range(self.L):
-            r,c =  self.W[i].shape;           
-            VdW[i] = np.zeros((r,c));
-            Vdb[i] = np.zeros(c); 
+            #r,c =  self.W[i].shape;           
+            #VdW[i] = np.zeros((r,c));
+            #Vdb[i] = np.zeros(c); 
+            VdW[i] = False;
+            Vdb[i] = False;
         # --------------------------------------------------------------------        
          
         while abs(c - c0) >  converge:
@@ -229,16 +233,21 @@ class Neural_network_classification:
                 
             delta_W,delta_b = self.derivative(self.L,self.Target,self.nodes,self.W);
             for i in range(self.L):
+                if type(VdW[i]) == bool:
+                    VdW[i] = delta_W[i]; 
+                if type(Vdb[i]) == bool:
+                    Vdb[i] = delta_b[i];
                 VdW[i] = beta * VdW[i] + (1-beta) * delta_W[i];
                 Vdb[i] = beta * Vdb[i] + (1-beta) * delta_b[i];
                 self.W[i] += learning_rate * (VdW[i] - regularization * self.W[i]);
                 self.b[i] += learning_rate * (Vdb[i] - regularization * self.b[i]);
-            
+
+        plt.figure();     
         plt.plot(costs);        
         plt.title("Optimization with momentum beta = %s" %(beta));
         plt.xlabel("steps");
         plt.ylabel("cross entropy likelihood");
-        plt.show();
+        #plt.show();
         
     def test_classification_rate(self,Xtest,Ytest):
         test_Target = self.y2indicator(Ytest,self.kinds);
@@ -250,11 +259,17 @@ class Neural_network_classification:
     
 
 # -----------------------------------------------------------------------------
-    
+#%%    
 class Neural_network_regression:
     def __init__(self,X,T,layer_nodes,Activation = 'sigmoid'):
         self.Activation = Activation;
+        ###### this step is very important as T is (N,) shape and 
+        ###### (N,) - (N,1) will give a (N,N)
+        ###### I don't know why !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ###### The only way to fix is as below
         self.Target = T.reshape(len(T),1);
+        ###### 
+        #self.Target = T;
         if layer_nodes[-1] != 1:
             layer_nodes[-1] = 1;
             print("Wrong input on the last layer. But has been fixed.");                  
@@ -315,14 +330,15 @@ class Neural_network_regression:
         return nodes;
             
             
-    def cost(self,T,Y): # cross entropy 
-        #tot = T * np.log(Y);
-        tot = ((T-Y)**2);
+    def cost(self,T,Y): 
+        # quadratic
+        tot = ((T-Y)**2); 
+        # the derivitive kernal[0] is (Y-T) * 2
+        # but in the function derivative it starts with T-Y so gradient acsent
+        
         #tot = np.abs(T-Y);
         return np.mean(tot);     
-        #tot = np.abs((T-Y));
-        #tot = np.mean(tot);
-        #return tot;
+        
             
             
     def derivative(self,L,Target,nodes,W):
@@ -332,6 +348,7 @@ class Neural_network_regression:
         delta_b = [0] * L;
         
         recursive_kernel = 2 * (Target - nodes[-1]); 
+        
         delta_W[L-1] = nodes[L-1].T.dot(recursive_kernel);
         delta_b[L-1] = recursive_kernel.sum(axis = 0); 
         j = L - 2;
@@ -344,7 +361,7 @@ class Neural_network_regression:
                 j -= 1;
                 
                 
-        elif self.Activation == 'leaky_relu':
+        elif self.Activation == 'leaky_relu':            
             while j >= 0:
                 recursive_kernel = (recursive_kernel.dot(W[j+1].T)) * ((nodes[j+1] > 0)*1 + (nodes[j+1] <= 0)*0.1); # leaky relu
                 delta_W[j] = nodes[j].T.dot(recursive_kernel);
@@ -393,11 +410,12 @@ class Neural_network_regression:
             for i in range(self.L):
                 self.W[i] += learning_rate * (delta_W[i] - regularization * np.abs(self.W[i]));
                 self.b[i] += learning_rate * (delta_b[i] - regularization * np.abs(self.b[i]));
+        plt.figure(); 
         plt.plot(costs);
         plt.title("Optimization");
         plt.xlabel("steps");
         plt.ylabel("cost");
-        plt.show();   
+        #plt.show();   
         
     def momentum_optimal(self,learning_rate = 1e-5,converge = 1e-7,beta = 0.5,regularization = 0,plot_step = 1000):
         if beta < 0 or beta > 1:
@@ -414,9 +432,11 @@ class Neural_network_regression:
         VdW = [0] * self.L;
         Vdb = [0] * self.L;        
         for i in range(self.L):
-            r,c =  self.W[i].shape;           
-            VdW[i] = np.zeros((r,c));
-            Vdb[i] = np.zeros(c); 
+            #r,c =  self.W[i].shape;           
+            #VdW[i] = np.zeros((r,c));
+            #Vdb[i] = np.zeros(c); 
+            VdW[i] = False;
+            Vdb[i] = False;
         # --------------------------------------------------------------------        
          
         while (abs(c - c0) >  converge):         
@@ -437,13 +457,17 @@ class Neural_network_regression:
                 
             delta_W,delta_b = self.derivative(self.L,self.Target,self.nodes,self.W);
             for i in range(self.L):
+                if type(VdW[i]) == bool:
+                    VdW[i] = delta_W[i]; 
+                if type(Vdb[i]) == bool:
+                    Vdb[i] = delta_b[i];
                 VdW[i] = beta * VdW[i] + (1-beta) * delta_W[i];
                 Vdb[i] = beta * Vdb[i] + (1-beta) * delta_b[i];
                 self.W[i] += learning_rate * (VdW[i] - regularization * self.W[i]);
                 self.b[i] += learning_rate * (Vdb[i] - regularization * self.b[i]);
-            
+        plt.figure();    
         plt.plot(costs);        
         plt.title("Optimization with momentum beta = %s" %(beta));
         plt.xlabel("steps");
         plt.ylabel("cost");
-        plt.show();
+        #plt.show();
