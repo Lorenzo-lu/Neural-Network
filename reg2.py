@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt;
 from mpl_toolkits.mplot3d import Axes3D;
 import time;
 
-from YZL_NN import YZL_NN;
+#from YZL_NN import YZL_NN;
+from YZ_ANN import YZ_ANN;
 
 N = 500;
 X = np.random.random((N,2)) * 4 - 2;
@@ -33,14 +34,14 @@ M2 = 10;
 
 K = 1;
 
-layer = [D,10,K];
+layer = [D,20,K];
 #layer = [D,20,K];
 
-reg = YZL_NN(X,Y,layer, W_init = 'Random', output_format = 'Linear');
+reg = YZ_ANN(X,Y,layer, W_init = 'Random', output_format = 'Linear');
 
 #learning_rate = 2e-6;
 learning_rate = 5e-2;
-converge = 1e-7 * learning_rate;
+converge = 1e-6;
 
 regularization = 0.;
 beta = 0.5;
@@ -49,8 +50,12 @@ beta = 0.5;
 start = time.clock();
 
 
-reg.Optimal(learning_rate,converge, beta, regularization);
+#reg.Optimal(learning_rate,converge, beta, regularization, plot_step = 100, \
+#            max_epoch = 100000, batch_size = 'all');
+            
+#reg.Optimal(learning_rate,converge, beta, regularization ,batch_size = 50);
 #reg.optimal(learning_rate,converge,regularization);
+
 
 end = time.clock();
 
