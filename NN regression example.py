@@ -51,9 +51,9 @@ start = time.clock();
 
 
 #reg.Optimal(learning_rate,converge, beta, regularization, plot_step = 100, \
-#            max_epoch = 100000, batch_size = 'all');
+           #max_epoch = 100000, batch_size = 'all');
             
-#reg.Optimal(learning_rate,converge, beta, regularization ,batch_size = 50);
+reg.Optimal(learning_rate, beta, regularization,plot_step = 100 ,batch_size = 50);
 #reg.optimal(learning_rate,converge,regularization);
 
 

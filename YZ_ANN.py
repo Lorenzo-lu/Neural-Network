@@ -63,8 +63,7 @@ class YZ_ANN:
                 self.layer_activation[-1] = 6;
             else:
                 print("Fatal Error: Wrong output format!");
-        print("The final activation functions are:\n")
-        self.Show_layers_act(self.L);
+        
         
         # *******************************************************
         # initialize the W and b by either random (0-1) or zeros
@@ -75,17 +74,26 @@ class YZ_ANN:
         elif W_init == 'Random':
             for i in range(self.L):            
                 self.W[i] = np.random.randn(layer_nodes[i],layer_nodes[i+1]);
-                self.b[i] = np.random.randn(layer_nodes[i+1]); 
+                self.b[i] = np.random.randn(layer_nodes[i+1]);
+
+        print("The final activation functions are:\n")
+        self.Show_layers_act(self.L, layer_nodes);
         
         
         
     ## func 2 and 3:  
-    def Show_layers_act(self, L): 
+    def Show_layers_act(self, L, layer_nodes = False): 
         # print the layers and their corresponding activation functions
-        acts = [];
-        for i in range(L):
-            acts.append([i, self.Activation_map[self.layer_activation[i]]]);       
-        print(acts);
+        if not layer_nodes:
+            acts = [];
+            for i in range(L):
+                acts.append([i, self.Activation_map[self.layer_activation[i]]]);       
+            print(acts);
+        else:
+            acts = [[0,'Input layer (nodes x' + str(layer_nodes[0]) + ')']];
+            for i in range(L):
+                acts.append([i+1, self.Activation_map[self.layer_activation[i]] + '(nodes x' + str(layer_nodes[i+1]) + ')']);      
+            print(acts);
         
         
     def Activation_sequence(self):
