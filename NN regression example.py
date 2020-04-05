@@ -12,7 +12,7 @@ import time;
 
 #from YZL_NN import YZL_NN;
 from YZ_ANN import YZ_ANN;
-from YZ_ANN2 import YZ_ANN_BN;
+#from YZ_ANN2 import YZ_ANN_BN;
 
 N = 500;
 X = np.random.random((N,2)) * 4 - 2;
@@ -26,7 +26,8 @@ Y = (2**3 - X[:,0]**2 - X[:,1]**2)**0.5;
 
 fig = plt.figure();
 ax = fig.add_subplot(1,1,1,projection = '3d');
-ax.scatter(X[:,0],X[:,1],Y);
+ax.scatter(X[:,0],X[:,1],Y, label = "raw data");
+plt.legend();
 plt.show();
 
 D = 2;
@@ -40,10 +41,10 @@ layer = [D,20,K];
 
 reg = YZ_ANN();
 reg.Train(X,Y,layer, W_init = 'Random', output_format = 'Linear');
-#reg = YZ_ANN_BN(X,Y,layer, W_init = 'Random', output_format = 'Linear', Batch_norm = False);
+
 
 #learning_rate = 2e-6;
-learning_rate = 1e-1;
+learning_rate = 2e-1;
 converge = 1e-6;
 
 regularization = 1e-4;
@@ -68,8 +69,8 @@ line = np.linspace(-2,2,20);
 xx,yy = np.meshgrid(line,line);
 Xgrid = np.vstack((xx.flatten(),yy.flatten())).T;
 
-#nodes = reg.Forward(Xgrid,len(layer),reg.W,reg.b , reg.layer_activation); # all the nodes are matrices
-nodes = reg.Forward(Xgrid)
+
+nodes = reg.Forward(Xgrid) ## get the prediected values of each layer
 Y_test = nodes[-1][:,0];
 
 fig = plt.figure();
@@ -78,7 +79,7 @@ ax.scatter(X[:,0],X[:,1],Y,label = 'Training',c = 'Blue',s = 10);
 #ax.scatter(Xgrid[:,0],Xgrid[:,1],Y_test)
 ax.plot_trisurf(Xgrid[:,0],Xgrid[:,1],Y_test,linewidth = 0.2, antialiased = True,color = 'Yellow');
 
-plt.legend();
+
 #plt.show();
 
 Ygrid = (2**3 - Xgrid[:,0]**2 - Xgrid[:,1]**2)**0.5;
@@ -87,6 +88,7 @@ print('test_cost:',reg.Cost(Ygrid,Y_test, 6));
 
 fig2 = plt.figure();
 plt.scatter(Xgrid[:,0],Xgrid[:,1], c = np.abs(Ygrid - Y_test));
+plt.title("test this NN");
 plt.show();
 
 ## test the save and load::::
@@ -104,6 +106,6 @@ fig = plt.figure();
 ax = fig.add_subplot(1,1,1,projection = '3d');
 ax.scatter(X[:,0],X[:,1],Y,label = 'Training',c = 'Blue',s = 10);
 ax.plot_trisurf(Xgrid[:,0],Xgrid[:,1],Y_test2,linewidth = 0.2, antialiased = True,color = 'Red');
-
-
+plt.title("test this parameter saving and loading");
+plt.show();
 

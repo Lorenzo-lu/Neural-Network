@@ -457,6 +457,8 @@ class YZ_ANN:
         return r;
     
     def Save_para(self, filename = False):
+        ## you can SAVE your parameters(activation, weight, bias)
+        ## in the form of dictionary
         if not filename:
             filename = input("Input the name of this training result ::format(don't include) -> .npy\n");
             filename += '.npy';
@@ -469,6 +471,7 @@ class YZ_ANN:
         np.save(filename,dic);
         
     def Load_para(self, filename = False):
+        ## you can LOAD your parameters(activation, weight, bias)
         print("This is a loading process. So no training is requried. Just forward and test");
         if not filename:
             filename = input("Input the name of file ::format(don't include) -> .npy\n");
