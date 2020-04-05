@@ -11,6 +11,11 @@ import numpy as np;
 import matplotlib.pyplot as plt;
 
 class YZ_ANN:
+    def __init__(self):
+        ## Define the activation function for each layer        
+        self.Activation_map = {1:'Sigmoid',2:'ReLU',3:'Leaky_ReLU',4:'Tanh',\
+                               5:'Softmax',6:'Linear'};
+        
     ## statement: 
     ## currently, support four acitivation function: 1. Sigmoid 2. ReLU 3. Leaky_ReLU 4.Tanh
     ## support three outputs format : 1. Softmax (for multiple classfification) 2. Sigmoid 3.Linear(for regression)!
@@ -18,7 +23,7 @@ class YZ_ANN:
     # ========================================================================================
     ## Section 1 : init the class! include func 1 & 2 & 3
     ## func 1:
-    def __init__(self, X, Target, layer_nodes, W_init = 'Random', \
+    def Train(self, X, Target, layer_nodes, W_init = 'Random', \
                  output_format = 'Softmax'):
         
         print('support three outputs format : 1. Softmax (for multiple \
@@ -32,9 +37,7 @@ class YZ_ANN:
         self.nodes = [0] * (self.L+1);
         self.nodes[0] = X;
         
-        ## Define the activation function for each layer        
-        self.Activation_map = {1:'Sigmoid',2:'ReLU',3:'Leaky_ReLU',4:'Tanh',\
-                               5:'Softmax',6:'Linear'};
+        
         self.Activation_sequence();           
         
         # *******************************************************
@@ -196,9 +199,19 @@ class YZ_ANN:
     # ========================================================================================
     ## Section 4: define the forward!
     ## func 7
-    def Forward(self,L,X,W,b,layer_activation = False):
-        if not layer_activation:
+    def Forward(self,X,L = False, W = False ,b = False,layer_activation = False):
+        if not np.all(layer_activation):
             layer_activation = self.layer_activation;
+        
+        if not np.all(L):
+            L = self.L + 1;
+            
+       
+        if W == False:
+            W = self.W;
+        
+        if b == False:
+            b = self.b;
         
         nodes = [0] * (L); ## L layers of nodes, L-1 layers of W and b
         #L = L - 1;
@@ -389,12 +402,14 @@ class YZ_ANN:
 
             X, T = Make_Batch(batch_size); ## X,Y and T are selected in the batch! 
 
-            nodes_selected = self.Forward(self.L+1,X,self.W,self.b);
+            #nodes_selected = self.Forward(X,self.L+1,self.W,self.b);
+            nodes_selected = self.Forward(X);
             #Y = nodes_selected[-1];
             
             if epoch%(plot_step) == 0:                
                 
-                self.nodes = self.Forward(self.L+1,self.nodes[0],self.W,self.b);
+                #self.nodes = self.Forward(self.nodes[0],self.L+1,self.W,self.b);
+                self.nodes = self.Forward(self.nodes[0]);
                 Y_global = self.nodes[-1];
                 c = self.Cost(self.Target,Y_global);
                 #c = np.log(c);
@@ -419,8 +434,8 @@ class YZ_ANN:
                     Vdb[i] = delta_b[i];
                 VdW[i] = beta * VdW[i] + (1-beta) * delta_W[i];
                 Vdb[i] = beta * Vdb[i] + (1-beta) * delta_b[i];
-                self.W[i] += learning_rate * (VdW[i] - regularization * self.W[i]);
-                self.b[i] += learning_rate * (Vdb[i] - regularization * self.b[i]);
+                self.W[i] += learning_rate * (VdW[i] - regularization * np.sign(self.W[i]));
+                self.b[i] += learning_rate * (Vdb[i] - regularization * np.sign(self.b[i]));
 
         plt.figure();     
         plt.plot(np.log(costs));        
@@ -435,9 +450,44 @@ class YZ_ANN:
         
     def Test_classification_rate(self,Xtest,Ytest):
         test_Target = self.Y2indicator(Ytest,self.kinds);
-        test_nodes = self.Forward(self.L+1,Xtest,self.W,self.b,self.layer_activation);
+        test_nodes = self.Forward(Xtest,self.L+1,self.W,self.b,self.layer_activation);
         r = self.Classification_rate(test_Target,test_nodes[-1],self.layer_activation[-1]);
         
         print('The classification rate of the test set is: ',r);
         return r;
     
+    def Save_para(self, filename = False):
+        if not filename:
+            filename = input("Input the name of this training result ::format(don't include) -> .npy\n");
+            filename += '.npy';
+        dic = {};
+        for i in range(len(self.layer_activation)):
+            dic[self.layer_activation[i]] = {};
+            dic[self.layer_activation[i]]['W'] = self.W[i];
+            dic[self.layer_activation[i]]['b'] = self.b[i];
+            
+        np.save(filename,dic);
+        
+    def Load_para(self, filename = False):
+        print("This is a loading process. So no training is requried. Just forward and test");
+        if not filename:
+            filename = input("Input the name of file ::format(don't include) -> .npy\n");
+            filename += '.npy';
+        
+        dic = (np.load(filename, allow_pickle=True)).item();
+        
+        self.layer_activation = [];
+        self.W = [];
+        self.b = [];
+        
+        for i in dic:
+            self.layer_activation.append(i);
+            self.W.append(dic[i]['W']);
+            self.b.append(dic[i]['b']);
+            
+        self.L = len(self.layer_activation);
+        
+        
+        
+        
+        
