@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt;
 
 class YZ_ANN:
     def __init__(self):
+        self.validation = False;
         ## Define the activation function for each layer        
         self.Activation_map = {1:'Sigmoid',2:'ReLU',3:'Leaky_ReLU',4:'Tanh',\
                                5:'Softmax',6:'Linear'};
@@ -66,8 +67,6 @@ class YZ_ANN:
                 self.layer_activation[-1] = 6;
             else:
                 print("Fatal Error: Wrong output format!");
-        
-        
         # *******************************************************
         # initialize the W and b by either random (0-1) or zeros
         if W_init == 'Zeros':
@@ -82,6 +81,11 @@ class YZ_ANN:
         print("The final activation functions are:\n")
         self.Show_layers_act(self.L, layer_nodes);
         
+                    
+    def Load_valid(self,X,T):## for validation
+        self.X_valid = X;
+        self.T_valid = np.reshape(T,(-1,1));
+        self.validation = True;
         
         
     ## func 2 and 3:  
@@ -154,6 +158,8 @@ class YZ_ANN:
     ## Section2: include func 4 & 5
     ## func 4
     def Y2indicator(self,y,K): 
+        if K==1:
+            return y;
         N = len(y);
         ind = np.zeros((N,K));
         for i in range(N):
@@ -376,7 +382,9 @@ class YZ_ANN:
             print('wrong beta input: beta should between 0 and 1');
             return;
         costs = [];
-        #c0 = 0;
+        if self.validation:
+            valid_costs = [];
+        
         c = 1;
 
         #N_sample = len(self.nodes[0]); ## The number of samples
@@ -406,20 +414,32 @@ class YZ_ANN:
             nodes_selected = self.Forward(X);
             #Y = nodes_selected[-1];
             
-            if epoch%(plot_step) == 0:                
+            if epoch%(plot_step) == 0: 
+                print("Process (%s / %s)"%(epoch, max_epoch))
                 
                 #self.nodes = self.Forward(self.nodes[0],self.L+1,self.W,self.b);
                 self.nodes = self.Forward(self.nodes[0]);
                 Y_global = self.nodes[-1];
-                c = self.Cost(self.Target,Y_global);
+                c = np.abs(self.Cost(self.Target,Y_global));
                 #c = np.log(c);
                 r = self.Classification_rate(self.Target,Y_global);
                 if r:
-                    print("cost:",c ,"classification rate:",r);
+                    print("test cost: %.3e | train classification rate: %.3e" %(c,r));
                 else:
-                    print("cost:",c);
-                costs.append(c);              
+                    print("test cost: %.3e"%(c));
+                costs.append(c); 
                 
+                if self.validation:
+                    Y_valid = self.Forward(self.X_valid)[-1];
+                    T_valid = self.Y2indicator(self.T_valid, self.kinds);
+                    c = np.abs(self.Cost(T_valid, Y_valid));
+                    r = self.Classification_rate(Y_valid, T_valid);
+                    if r:
+                        print("valid cost: %.3e | valid classification rate: %.3e" %(c, r));
+                    else:
+                        print("valid cost: %.3e"%(c));
+                    valid_costs.append(c);
+         
             epoch += 1;
 
             #if (epoch == max_epoch) and abs(costs[-1] - costs[-2]) > (converge/plot_step):
@@ -438,14 +458,21 @@ class YZ_ANN:
                 self.b[i] += learning_rate * (Vdb[i] - regularization * np.sign(self.b[i]));
 
         plt.figure();     
-        plt.plot(np.log(costs));        
+        plt.plot((costs), label = 'Train_loss');  
+        if self.validation:
+            plt.plot((valid_costs), label = 'Test_loss');
+            
         plt.title("Optimization with momentum beta = %s & regularization = %s" %(beta, regularization));
         plt.xlabel("steps /(%s)" %(plot_step));       
 
-        plt.ylabel("Loss (in log)");
+        plt.ylabel("Loss (in log)");      
+        plt.legend();
         plt.show();
         
-        self.Loss = costs;
+        self.train_loss = costs;
+        if self.validation:
+            self.valid_loss = valid_costs;
+        
         
         
     def Test_classification_rate(self,Xtest,Ytest):

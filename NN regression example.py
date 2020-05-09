@@ -44,7 +44,7 @@ reg.Train(X,Y,layer, W_init = 'Random', output_format = 'Linear');
 
 
 #learning_rate = 2e-6;
-learning_rate = 2e-1;
+learning_rate = 2e-2;
 converge = 1e-6;
 
 regularization = 1e-4;
@@ -57,7 +57,7 @@ start = time.clock();
 #reg.Optimal(learning_rate,converge, beta, regularization, plot_step = 100, \
            #max_epoch = 100000, batch_size = 'all');
             
-reg.Optimal(learning_rate, beta, regularization,plot_step = 100 ,batch_size = 'all');
+reg.Optimal(learning_rate, beta, regularization,plot_step = 1000 ,batch_size = 'all');
 #reg.optimal(learning_rate,converge,regularization);
 
 
@@ -78,7 +78,6 @@ ax = fig.add_subplot(1,1,1,projection = '3d');
 ax.scatter(X[:,0],X[:,1],Y,label = 'Training',c = 'Blue',s = 10);
 #ax.scatter(Xgrid[:,0],Xgrid[:,1],Y_test)
 ax.plot_trisurf(Xgrid[:,0],Xgrid[:,1],Y_test,linewidth = 0.2, antialiased = True,color = 'Yellow');
-
 
 #plt.show();
 
@@ -105,7 +104,6 @@ print('test_cost:',reg.Cost(Ygrid,Y_test2));
 fig = plt.figure();
 ax = fig.add_subplot(1,1,1,projection = '3d');
 ax.scatter(X[:,0],X[:,1],Y,label = 'Training',c = 'Blue',s = 10);
-ax.plot_trisurf(Xgrid[:,0],Xgrid[:,1],Y_test2,linewidth = 0.2, antialiased = True,color = 'Red');
+ax.plot_trisurf(Xgrid[:,0],Xgrid[:,1],Y_test2,linewidth = 0.2, antialiased = True,color = 'Orange');
 plt.title("test this parameter saving and loading");
 plt.show();
-
