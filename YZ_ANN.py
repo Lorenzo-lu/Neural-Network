@@ -9,6 +9,7 @@ Created on Mon Mar 16 18:13:28 2020
 
 import numpy as np;
 import matplotlib.pyplot as plt;
+import time;
 
 class YZ_ANN:
     def __init__(self):
@@ -328,8 +329,13 @@ class YZ_ANN:
             if (para_map[6]) != 'all':
                 para_map[6] = int((para_map[6]))
                 
-            
+            time_start = time.time();
             self.Gradient_Ascent(para_map[1], para_map[2], para_map[3], para_map[4], para_map[5], para_map[6]);
+            time_end = time.time();
+            print('___________________________________________________');
+            print('%.3e seconds are used'%(time_end - time_start));
+            print('___________________________________________________');
+            
             print('Is the Optimal achieved?');
             Judge = input('Y/N\n');
 
@@ -366,7 +372,8 @@ class YZ_ANN:
             if type(size) == int:
                 if (size <= len(self.nodes[0])) and (size >= 1):
                     cols = len(self.nodes[0][0,:]);
-                    rnd_indices = np.random.randint(0, len(perm), size);
+                    #rnd_indices = np.random.randint(0, len(perm), size);
+                    rnd_indices = np.random.permutation(len(perm))[:size]
                     selection = perm[rnd_indices];
 
 
@@ -424,9 +431,9 @@ class YZ_ANN:
                 #c = np.log(c);
                 r = self.Classification_rate(self.Target,Y_global);
                 if r:
-                    print("test cost: %.3e | train classification rate: %.3e" %(c,r));
+                    print("train cost: %.3e | train classification rate: %.2f%%" %(c,r*100));
                 else:
-                    print("test cost: %.3e"%(c));
+                    print("train cost: %.3e"%(c));
                 costs.append(c); 
                 
                 if self.validation:
@@ -435,7 +442,7 @@ class YZ_ANN:
                     c = np.abs(self.Cost(T_valid, Y_valid));
                     r = self.Classification_rate(Y_valid, T_valid);
                     if r:
-                        print("valid cost: %.3e | valid classification rate: %.3e" %(c, r));
+                        print("valid cost: %.3e | valid classification rate: %.2f%%" %(c, r*100));
                     else:
                         print("valid cost: %.3e"%(c));
                     valid_costs.append(c);
@@ -480,7 +487,7 @@ class YZ_ANN:
         test_nodes = self.Forward(Xtest,self.L+1,self.W,self.b,self.layer_activation);
         r = self.Classification_rate(test_Target,test_nodes[-1],self.layer_activation[-1]);
         
-        print('The classification rate of the test set is: ',r);
+        print('The classification rate of the test set is: %.2f%%'%(r*100));
         return r;
     
     def Save_para(self, filename = False):
