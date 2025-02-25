@@ -1,0 +1,1 @@
+This is a tutorial and learning note on artificial neural networks using NumPy that I created when I first started learning Python. It includes a basic framework for building models, calculating gradients, and functions for reading and saving data. I hope it helps others learn.
